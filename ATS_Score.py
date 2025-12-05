@@ -10,7 +10,7 @@ import re
 # CONFIGURATION
 # ===========================
 # 🔑 Directly use your API key here (for local testing only)
-API_KEY = "AIzaSyBgthsd6RZujiJobfhVPd3Ordodysrhz_o"
+API_KEY = "AIzaSyD__7k8CqDcFtztOZOJa2O5efHJm2AFQg0"
 
 # Choose model (you can change to gemini-1.5-pro if needed)
 MODEL = "gemini-2.0-flash"
@@ -79,6 +79,12 @@ Provide output in JSON format with the following fields:
 
     response = model.generate_content(prompt)
     text = response.text.strip()
+    
+    text = response.text.strip()
+    match = re.search(r"\{[\s\S]*\}", text)
+    if match:
+        text = match.group(0)
+
 
     try:
         result = json.loads(text)
