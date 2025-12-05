@@ -77,15 +77,8 @@ Provide output in JSON format with the following fields:
 {resume_text}
 """
 
-    response = client.models.generate_content(
-    model=MODEL,
-    contents=prompt,
-)
-
+    response = model.generate_content(prompt)
     text = response.text.strip()
-    match = re.search(r"\{[\s\S]*\}", text)
-    if match:
-        text = match.group(0)
 
     try:
         result = json.loads(text)
