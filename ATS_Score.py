@@ -16,7 +16,9 @@ API_KEY = "AIzaSyBgthsd6RZujiJobfhVPd3Ordodysrhz_o"
 MODEL = "gemini-2.0-flash"
 
 # Initialize Gemini client
-client = genai.Client(api_key=API_KEY)
+# client = genai.Client(api_key=API_KEY)
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel(MODEL)
 
 
 # ===========================
