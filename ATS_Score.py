@@ -1,7 +1,8 @@
 import streamlit as st
 import PyPDF2
 import docx
-from google import genai
+# from google import genai
+import google.generativeai as genai
 import json
 import re
 
