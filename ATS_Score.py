@@ -10,7 +10,7 @@ import re
 # CONFIGURATION
 # ===========================
 # 🔑 Directly use your API key here (for local testing only)
-API_KEY = "AIzaSyD__7k8CqDcFtztOZOJa2O5efHJm2AFQg0"
+API_KEY = st.secrets["API_KEY"]
 
 # Choose model (you can change to gemini-1.5-pro if needed)
 MODEL = "gemini-2.0-flash"
