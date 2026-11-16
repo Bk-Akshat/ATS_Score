@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import PyPDF2
 import docx
@@ -5,20 +7,25 @@ import docx
 import google.generativeai as genai
 import json
 import re
+from streamlit.errors import StreamlitSecretNotFoundError
 
 # ===========================
 # CONFIGURATION
 # ===========================
-# 🔑 Directly use your API key here (for local testing only)
-API_KEY = st.secrets["API_KEY"]
+API_KEY = os.environ.get("API_KEY")
+if not API_KEY:
+    try:
+        API_KEY = st.secrets["API_KEY"]
+    except (KeyError, StreamlitSecretNotFoundError):
+        API_KEY = None
 
 # Choose an available Gemini model
 MODEL = "gemini-3.8-flash"
 
-# Initialize Gemini client
-# client = genai.Client(api_key=API_KEY)
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel(MODEL)
+model = None
+if API_KEY:
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel(MODEL)
 
 
 # ===========================
@@ -108,6 +115,8 @@ st.set_page_config(page_title="ATS Resume Score Checker", page_icon="📄", layo
 
 st.title("📄 ATS Resume Score Checker")
 st.caption("Powered by Google Gemini API — built by Akshat Anand 💡")
+if not API_KEY:
+    st.warning("Configure the API_KEY environment variable or Streamlit secret to enable analysis.")
 
 st.markdown("""
 Upload your resume and paste a job description below.  
@@ -119,37 +128,40 @@ job_description = st.text_area("🧾 Paste Job Description", height=200)
 
 if uploaded_resume and job_description:
     if st.button("🔍 Analyze Resume"):
-        with st.spinner("Analyzing your resume with Gemini AI... ⏳"):
-            resume_text = read_resume(uploaded_resume)
-            if not resume_text:
-                st.error("❌ Unable to extract text from resume.")
-            else:
-                result = get_ats_analysis(resume_text, job_description)
-
-                st.subheader("📊 ATS Match Score")
-                st.progress(result.get("score", 0) / 100)
-                st.metric("Match Score", f"{result.get('score', 0)} / 100")
-
-                st.subheader("💪 Strengths")
-                if result.get("strengths"):
-                    for s in result["strengths"]:
-                        st.write(f"- {s}")
+        if not API_KEY:
+            st.error("Set API_KEY in the deployment environment or Streamlit secrets, then retry.")
+        else:
+            with st.spinner("Analyzing your resume with Gemini AI... ⏳"):
+                resume_text = read_resume(uploaded_resume)
+                if not resume_text:
+                    st.error("❌ Unable to extract text from resume.")
                 else:
-                    st.write("No strengths identified.")
+                    result = get_ats_analysis(resume_text, job_description)
 
-                st.subheader("⚠️ Missing or Weak Skills")
-                if result.get("missing_skills"):
-                    for m in result["missing_skills"]:
-                        st.write(f"- {m}")
-                else:
-                    st.write("No missing skills identified.")
+                    st.subheader("📊 ATS Match Score")
+                    st.progress(result.get("score", 0) / 100)
+                    st.metric("Match Score", f"{result.get('score', 0)} / 100")
 
-                st.subheader("🧾 Verdict")
-                st.write(f"**{result.get('verdict', 'N/A')}**")
+                    st.subheader("💪 Strengths")
+                    if result.get("strengths"):
+                        for s in result["strengths"]:
+                            st.write(f"- {s}")
+                    else:
+                        st.write("No strengths identified.")
 
-                st.subheader("📈 Recommendations")
-                for r in result.get("recommendations", []):
-                    st.write(f"- {r}")
+                    st.subheader("⚠️ Missing or Weak Skills")
+                    if result.get("missing_skills"):
+                        for m in result["missing_skills"]:
+                            st.write(f"- {m}")
+                    else:
+                        st.write("No missing skills identified.")
+
+                    st.subheader("🧾 Verdict")
+                    st.write(f"**{result.get('verdict', 'N/A')}**")
+
+                    st.subheader("📈 Recommendations")
+                    for r in result.get("recommendations", []):
+                        st.write(f"- {r}")
 
 else:
     st.info("⬆️ Upload a resume and paste a job description to begin.")
